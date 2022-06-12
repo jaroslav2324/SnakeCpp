@@ -30,3 +30,19 @@
 *.exe
 *.out
 *.app
+
+# VS files
+
+#folders
+/.vs
+/SnakeCpp/Debug
+/SnakeCpp/x64
+/SnakeCpp/SnakeCpp.sln
+/SnakeCpp/.vs
+/SnakeCpp/SnakeCpp/Debug
+/SnakeCpp/SnakeCpp/x64
+
+#files
+*.filters
+*.user
+*.vcxproj
