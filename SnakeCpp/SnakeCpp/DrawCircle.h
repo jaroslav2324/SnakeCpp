@@ -46,5 +46,4 @@ void drawBresenhamCircle(SDL_Renderer* renderer, int centereX, int centereY, int
 			++y;
 		}
 	}
-
 }

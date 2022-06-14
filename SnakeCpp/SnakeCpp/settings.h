@@ -11,11 +11,22 @@
 
 typedef int TILE_TYPE;
 
-enum TileTypes
-{
+#define and &&
+#define or ||
+#define not !
+
+enum TileTypes{
 	EMPTY_TILE = 0,
 	WALL_TILE,
 	FOOD_TILE,
 	SNAKE_HEAD_TILE,
 	SNAKE_TILE
+};
+
+// char values
+enum MovingDirections {
+	UP = 0,
+	DOWN,
+	RIGHT,
+	LEFT,
 };

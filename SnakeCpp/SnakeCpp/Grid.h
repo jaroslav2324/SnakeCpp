@@ -1,8 +1,9 @@
+#include <list>
 #include <utility>
 #include <random>
 
 #include "settings.h"
-
+#include "Snake.h"
 
 template <int numTiles>
 class GridRow {
@@ -24,32 +25,37 @@ public:
 
 	std::pair<int, int> placeSnakeOnTiles();
 	void generateFood();
-	// ifAllTilesSnake
 
-	//void renderAllItemsOnGrid(SDL_Renderer& ren);
+	void renderAll(SDL_Renderer* ren);
+	// 
 	//makeGameTurn(move snake)
-
-	bool ifTileWall(int coord_x_in_pixels, int coord_y_in_pixels);
-	bool ifTileSnake(int coord_x_in_pixels, int coord_y_in_pixels);
-	bool ifTileFood(int coord_x_in_pixels, int coord_y_in_pixels);
-	bool ifTilewmpty(int coord_x_in_pixels, int coord_y_in_pixels);
-	bool ifTileHeadSnake(int coord_x_in_pixels, int coord_y_in_pixels);
 
 	GridRow<numCols>& operator[](int numRow);
 
 	// debug
 	void printGridTypes();
+	void renderGrid(SDL_Renderer* ren);
 
 private:
 	int pixelsToGridCoord(int pixels);
 	int gridCoordToPixels(int gridCoord);
-	void clearGrid();
+
+	void resetGridTilesTypes();
+	void renderGridTiles(SDL_Renderer* ren);
+	void renderSnake(SDL_Renderer* ren);
+
+	bool ifTileWall(int indexX, int indexY);
+	bool ifTileSnake(int indexX, int indexY);
+	bool ifTileFood(int indexX, int indexY);
+	bool ifTileEmpty(int indexX, int indexY);
+	bool ifTileHeadSnake(int indexX, int indexY);
+	bool ifAllTilesSnake(); // amazing player
 
 	GridRow<numCols> grid[numRows];
 
-	
 	//food
-	//pointer to snake or reference
+
+	Snake<int> snake;
 };
 
 template <int numRows, int numCols>
@@ -74,7 +80,7 @@ GridRow<numCols>& Grid<numRows, numCols>::operator[](int numRow) {
 }
 
 template <int numRows, int numCols>
-void Grid<numRows, numCols>::clearGrid() {
+void Grid<numRows, numCols>::resetGridTilesTypes() {
 
 	for (int i = 0; i < numCols; i++)
 		grid[0][i] = WALL_TILE;
@@ -112,63 +118,59 @@ void Grid<numRows, numCols>::printGridTypes() {
 }
 
 template <int numRows, int numCols>
-bool Grid<numRows, numCols>::ifTileWall(int coord_x_in_pixels, int coord_y_in_pixels) {
+bool Grid<numRows, numCols>::ifTileWall(int indexX, int indexY) {
 
-	int gridCoordX = pixelsToGridCoord(coord_x_in_pixels);
-	int gridCoordY = pixelsToGridCoord(coord_y_in_pixels);
-
-	if (grid[gridCoordX][gridCoordY] == WALL_TILE)
+	if (grid[indexX][indexY] == WALL_TILE)
 		return true;
 	else
 		return false;
 }
 
 template <int numRows, int numCols>
-bool Grid<numRows, numCols>::ifTileSnake(int coord_x_in_pixels, int coord_y_in_pixels) {
+bool Grid<numRows, numCols>::ifTileSnake(int indexX, int indexY) {
 
-	int gridCoordX = pixelsToGridCoord(coord_x_in_pixels);
-	int gridCoordY = pixelsToGridCoord(coord_y_in_pixels);
-
-	if (grid[gridCoordX][gridCoordY] == SNAKE_TILE)
+	if (grid[indexX][indexY] == SNAKE_TILE)
 		return true;
 	else
 		return false;
 }
 
 template <int numRows, int numCols>
-bool Grid<numRows, numCols>::ifTileFood(int coord_x_in_pixels, int coord_y_in_pixels) {
+bool Grid<numRows, numCols>::ifTileFood(int indexX, int indexY) {
 
-	int gridCoordX = pixelsToGridCoord(coord_x_in_pixels);
-	int gridCoordY = pixelsToGridCoord(coord_y_in_pixels);
-
-	if (grid[gridCoordX][gridCoordY] == FOOD_TILE)
+	if (grid[indexX][indexY] == FOOD_TILE)
 		return true;
 	else
 		return false;
 }
 
 template <int numRows, int numCols>
-bool Grid<numRows, numCols>::ifTilewmpty(int coord_x_in_pixels, int coord_y_in_pixels) {
+bool Grid<numRows, numCols>::ifTileEmpty(int indexX, int indexY) {
 
-	int gridCoordX = pixelsToGridCoord(coord_x_in_pixels);
-	int gridCoordY = pixelsToGridCoord(coord_y_in_pixels);
-
-	if (grid[gridCoordX][gridCoordY] == EMPTY_TILE)
+	if (grid[indexX][indexY] == EMPTY_TILE)
 		return true;
 	else
 		return false;
 }
 
 template <int numRows, int numCols>
-bool Grid<numRows, numCols>::ifTileHeadSnake(int coord_x_in_pixels, int coord_y_in_pixels) {
+bool Grid<numRows, numCols>::ifTileHeadSnake(int indexX, int indexY) {
 
-	int gridCoordX = pixelsToGridCoord(coord_x_in_pixels);
-	int gridCoordY = pixelsToGridCoord(coord_y_in_pixels);
-
-	if (grid[gridCoordX][gridCoordY] == SNAKE_HEAD_TILE)
+	if (grid[indexX][indexY] == SNAKE_HEAD_TILE)
 		return true;
 	else
 		return false;
+}
+
+template <int numRows, int numCols>
+bool Grid<numRows, numCols>::ifAllTilesSnake() {
+
+	for (int i = 1; i < numRows - 1; i++)
+		for (int j = 1; j < numCols - 1; j++)
+			if (not (grid[i][j] == SNAKE_TILE or grid[i][j] == SNAKE_HEAD_TILE))
+				return false;
+
+	return true;
 }
 
 template <int numRows, int numCols>
@@ -186,7 +188,7 @@ void Grid<numRows, numCols>::generateFood() {
 	}
 
 	//clear grid
-	clearGrid();
+	resetGridTilesTypes();
 
 	//placeSnake
 	placeSnakeOnTiles();
@@ -198,6 +200,80 @@ void Grid<numRows, numCols>::generateFood() {
 	//change Food Position 
 
 }
+
+template <int numRows, int numCols>
+void Grid<numRows, numCols>::renderGrid(SDL_Renderer* ren) {
+
+	SDL_SetRenderDrawColor(ren, 120, 120, 120, 255);
+	int numR, numC;
+	numR = numRows;
+	numC = numCols;
+
+	for (int i = -1; i <= numRows; i++) {
+		int x1, x2, y1, y2;
+		x1 = gridCoordToPixels(-1);
+		x2 = gridCoordToPixels(numC);
+		y1 = gridCoordToPixels(i);
+		y2 = y1;
+		SDL_RenderDrawLine(ren, x1, y1, x2, y2);
+	}
+
+	for (int i = -1; i <= numCols; i++) {
+		int x1, x2, y1, y2;
+		y1 = gridCoordToPixels(-1);
+		y2 = gridCoordToPixels(numR);
+		x1 = gridCoordToPixels(i);
+		x2 = x1;
+		SDL_RenderDrawLine(ren, x1, y1, x2, y2);
+	}
+}
+
+template <int numRows, int numCols>
+void Grid<numRows, numCols>::renderGridTiles(SDL_Renderer* ren) {
+
+	SDL_Rect rect;
+
+	rect.w = SNAKE_SEGMENT_WIDTH;
+	rect.h = SNAKE_SEGMENT_WIDTH;
+
+	// render grey wall and black empty tiles
+	for (int indexRow = 0; indexRow < numRows; indexRow++)
+		for (int indexCol = 0; indexCol < numCols; indexCol++) {
+
+			if(ifTileWall(indexRow, indexCol))
+				SDL_SetRenderDrawColor(ren, 120, 120, 120, 255);
+
+			if(ifTileEmpty(indexRow, indexCol))
+				SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
+
+			rect.x = gridCoordToPixels(indexRow) - SNAKE_SEGMENT_WIDTH / 2;
+			rect.y = gridCoordToPixels(indexCol) - SNAKE_SEGMENT_WIDTH / 2;
+
+			SDL_RenderDrawRect(ren, &rect);
+			SDL_RenderFillRect(ren, &rect);
+		}
+}
+
+template <int numRows, int numCols>
+void Grid<numRows, numCols>::renderAll(SDL_Renderer* ren) {
+
+	renderGridTiles(ren);
+	renderSnake(ren);
+	//RenderFood
+}
+
+template <int numRows, int numCols>
+void Grid<numRows, numCols>::renderSnake(SDL_Renderer* ren) {
+
+	int x, y;
+
+	for (auto iterSegment : snake.listSegmentCoords) {
+		x = gridCoordToPixels(iterSegment.first);
+		y = gridCoordToPixels(iterSegment.second);
+		drawBresenhamCircle(ren, x, y, SNAKE_SEGMENT_WIDTH, true);
+	}
+}
+
 
 
 // GridRow
@@ -233,6 +309,3 @@ TILE_TYPE& GridRow<numTiles>::operator[](int index) {
 		throw std::exception("Array index out of bounds in GridRow");
 	return row[index];
 }
-
-
-

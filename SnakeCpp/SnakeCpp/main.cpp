@@ -21,11 +21,11 @@ int main(int argc, char** args) {
         return 1;
     }
 
-    const int numRows = SCREEN_HEIGHT / SNAKE_SEGMENT_WIDTH;
-    const int numCols = SCREEN_WIDTH / SNAKE_SEGMENT_WIDTH;
+    const int numRows = (SCREEN_HEIGHT - SNAKE_SEGMENT_WIDTH / 2) / SNAKE_SEGMENT_WIDTH;
+    const int numCols = (SCREEN_WIDTH - SNAKE_SEGMENT_WIDTH / 2) / SNAKE_SEGMENT_WIDTH;
 
     Grid<numRows, numCols> Grid;
-    Grid.printGridTypes();
+    
 
     SDL_Surface* screen_surface = NULL;
     SDL_Window* window = NULL;
@@ -35,8 +35,11 @@ int main(int argc, char** args) {
     screen_surface = SDL_GetWindowSurface(window);
     renderer = SDL_CreateRenderer(window, -1, 0);
 
+    Grid.renderAll(renderer);
+    Grid.renderGrid(renderer);
+
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    drawBresenhamCircle(renderer, 75, 50, 25, true);
+    drawBresenhamCircle(renderer, 75, 75, 25, true);
     //SDL_UpdateWindowSurface(window);
     SDL_RenderPresent(renderer);
 
