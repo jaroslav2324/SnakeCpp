@@ -35,13 +35,19 @@ int main(int argc, char** args) {
     screen_surface = SDL_GetWindowSurface(window);
     renderer = SDL_CreateRenderer(window, -1, 0);
 
-    Grid.renderAll(renderer);
-    Grid.renderGrid(renderer);
+
+
+    for (int i = 0; i < 50; i++) {
+
+        Grid.renderAll(renderer);
+        Grid.renderGrid(renderer);
+        SDL_RenderPresent(renderer);
+        SDL_Delay(1000);
+        Grid.moveSnake();
+    }
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    drawBresenhamCircle(renderer, 75, 75, 25, true);
     //SDL_UpdateWindowSurface(window);
-    SDL_RenderPresent(renderer);
 
     SDL_Delay(5000);
 

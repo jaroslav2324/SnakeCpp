@@ -30,3 +30,10 @@ enum MovingDirections {
 	RIGHT,
 	LEFT,
 };
+
+enum Difficulty {
+	EASY = 1,
+	MEDIUM,
+	HARD,
+	IMPOSSIPLE
+};

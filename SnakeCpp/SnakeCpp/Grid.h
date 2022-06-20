@@ -23,15 +23,11 @@ public:
 	Grid();
 	~Grid();
 
-	std::pair<int, int> placeSnakeOnTiles();
-	void generateFood();
-
 	void renderAll(SDL_Renderer* ren);
-	// 
+	
 	//makeGameTurn(move snake)
-
-	GridRow<numCols>& operator[](int numRow);
-
+	void moveSnake();
+	
 	// debug
 	void printGridTypes();
 	void renderGrid(SDL_Renderer* ren);
@@ -41,8 +37,12 @@ private:
 	int gridCoordToPixels(int gridCoord);
 
 	void resetGridTilesTypes();
+	void placeSnakeOnTiles();
+	void generateFood();
+
 	void renderGridTiles(SDL_Renderer* ren);
 	void renderSnake(SDL_Renderer* ren);
+	void renderFood(SDL_Renderer* ren);
 
 	bool ifTileWall(int indexX, int indexY);
 	bool ifTileSnake(int indexX, int indexY);
@@ -51,20 +51,35 @@ private:
 	bool ifTileHeadSnake(int indexX, int indexY);
 	bool ifAllTilesSnake(); // amazing player
 
+	bool ifFoodConsumed(char direction);
+	bool ifSnakeDies(char direction);
+
+	GridRow<numCols>& operator[](int numRow);
+
 	GridRow<numCols> grid[numRows];
 
-	//food
-
 	Snake<int> snake;
+	std::pair<int, int> foodPosition;
 };
 
 template <int numRows, int numCols>
 Grid<numRows, numCols>::Grid() {
 
+	//fill grid types
 	grid[0] = GridRow<numCols>(true);
 	for (int i = 1; i < numRows - 1; i++)
 		grid[i] = GridRow<numCols>();
 	grid[numRows - 1] = GridRow<numCols>(true);
+
+	//add snake head
+	int snakeStartPosX = (SCREEN_WIDTH / SNAKE_SEGMENT_WIDTH) / 2;
+	int snakeStartPosY = (SCREEN_HEIGHT / SNAKE_SEGMENT_WIDTH) / 2;
+
+	snake.addSegmentCoords(snakeStartPosX, snakeStartPosY);
+
+	// generate food
+	generateFood();
+
 }
 
 template <int numRows, int numCols>
@@ -196,9 +211,7 @@ void Grid<numRows, numCols>::generateFood() {
 	//place food
 	grid[numRandomRow][numRandomCol] = FOOD_TILE;
 
-	//TODO
-	//change Food Position 
-
+	foodPosition = std::make_pair(numRandomRow, numRandomCol);
 }
 
 template <int numRows, int numCols>
@@ -242,8 +255,7 @@ void Grid<numRows, numCols>::renderGridTiles(SDL_Renderer* ren) {
 
 			if(ifTileWall(indexRow, indexCol))
 				SDL_SetRenderDrawColor(ren, 120, 120, 120, 255);
-
-			if(ifTileEmpty(indexRow, indexCol))
+			else
 				SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
 
 			rect.x = gridCoordToPixels(indexRow) - SNAKE_SEGMENT_WIDTH / 2;
@@ -259,7 +271,7 @@ void Grid<numRows, numCols>::renderAll(SDL_Renderer* ren) {
 
 	renderGridTiles(ren);
 	renderSnake(ren);
-	//RenderFood
+	renderFood(ren);
 }
 
 template <int numRows, int numCols>
@@ -267,10 +279,167 @@ void Grid<numRows, numCols>::renderSnake(SDL_Renderer* ren) {
 
 	int x, y;
 
+	SDL_SetRenderDrawColor(ren, 0, 200, 0, 255);
+
 	for (auto iterSegment : snake.listSegmentCoords) {
 		x = gridCoordToPixels(iterSegment.first);
 		y = gridCoordToPixels(iterSegment.second);
-		drawBresenhamCircle(ren, x, y, SNAKE_SEGMENT_WIDTH, true);
+		drawBresenhamCircle(ren, x, y, SNAKE_SEGMENT_WIDTH / 2, true);
+	}
+}
+
+template <int numRows, int numCols>
+void Grid<numRows, numCols>::renderFood(SDL_Renderer* ren) {
+
+	int coordX = gridCoordToPixels(foodPosition.first);
+	int coordY = gridCoordToPixels(foodPosition.second);
+
+	SDL_SetRenderDrawColor(ren, 255, 255, 0, 255);
+
+	drawBresenhamCircle(ren, coordX, coordY, SNAKE_SEGMENT_WIDTH / 2, true);
+}
+
+template <int numRows, int numCols>
+void Grid<numRows, numCols>::placeSnakeOnTiles() {
+
+	for (auto iterSegment : snake.listSegmentCoords)
+		grid[iterSegment.first][iterSegment.second] = SNAKE_TILE;
+
+	auto headCoords = snake.listSegmentCoords.begin();
+	grid[headCoords->first][headCoords->second] = SNAKE_HEAD_TILE;
+}
+
+// check tile where head will be in the next turn
+template <int numRows, int numCols>
+bool Grid<numRows, numCols>::ifFoodConsumed(char direction) {
+
+	auto headCoords = snake.listSegmentCoords.begin();
+	switch (direction) {
+	case UP:
+		if (ifTileFood(headCoords->first, headCoords->second - 1))
+			return true;
+		break;
+
+	case DOWN:
+		if (ifTileFood(headCoords->first, headCoords->second + 1))
+			return true;
+		break;
+
+	case RIGHT:
+
+		if (ifTileFood(headCoords->first + 1, headCoords->second))
+			return true;
+		break;
+
+	case LEFT:
+
+		if (ifTileFood(headCoords->first - 1, headCoords->second))
+			return true;
+		break;
+	}
+
+	return false;
+}
+
+// check tile where head will be in the next turn
+template <int numRows, int numCols>
+bool Grid<numRows, numCols>::ifSnakeDies(char direction) {
+
+	auto headCoords = snake.listSegmentCoords.begin();
+	switch (direction) {
+	case UP:
+		if ( not (ifTileEmpty(headCoords->first, headCoords->second - 1) or ifTileFood(headCoords->first, headCoords->second - 1)))
+			return true;
+		break;
+
+	case DOWN:
+		if ( not (ifTileEmpty(headCoords->first, headCoords->second + 1) or ifTileFood(headCoords->first, headCoords->second + 1)))
+			return true;
+		break;
+
+	case RIGHT:
+
+		if ( not (ifTileEmpty(headCoords->first + 1, headCoords->second) or ifTileFood(headCoords->first + 1, headCoords->second)))
+			return true;
+		break;
+
+	case LEFT:
+
+		if ( not (ifTileEmpty(headCoords->first - 1, headCoords->second) or ifTileFood(headCoords->first - 1, headCoords->second)))
+			return true;
+		break;
+	}
+
+	return false;
+}
+
+template <int numRows, int numCols>
+void Grid<numRows, numCols>::moveSnake() {
+
+	//choose direction
+	SDL_Event event;
+	char direction = -1;
+	bool quit = 0;
+
+	while (SDL_PollEvent(&event)) {
+		if (event.type == SDL_QUIT){
+			quit = 1;
+			break;
+		}
+		if (event.type == SDL_KEYDOWN) {
+			if (event.key.keysym.sym == SDLK_a or event.key.keysym.sym == SDLK_LEFT)
+				direction = LEFT;
+			if (event.key.keysym.sym == SDLK_w or event.key.keysym.sym == SDLK_UP)
+				direction = UP;
+			if (event.key.keysym.sym == SDLK_s or event.key.keysym.sym == SDLK_DOWN)
+				direction = DOWN;
+			if (event.key.keysym.sym == SDLK_d or event.key.keysym.sym == SDLK_RIGHT)
+				direction = RIGHT;
+		}
+	}
+
+	if (quit){
+		SDL_Quit();
+		exit(0);
+	}
+
+	if (direction == -1)
+		direction = snake.previousDirection;
+
+	if (snake.listSegmentCoords.size() > 2) {
+
+	}
+
+	//check death
+	if (ifSnakeDies(direction)) {
+		SDL_Quit();
+		exit(0);
+	}
+
+	bool growth = 0;
+	int tailX, tailY;
+	//check food
+	if (ifFoodConsumed(direction)){
+		growth = 1;
+
+		auto tailCoords = snake.listSegmentCoords.begin();
+		// save tail coords
+		if (snake.listSegmentCoords.size() > 1)
+			auto tailCoords = snake.listSegmentCoords.end();
+
+
+		tailX = tailCoords->first;
+		tailY = tailCoords->second;
+	}
+
+	// move
+	snake.moveForward(direction);
+
+	//if growth, add segment with coords of tail after moving
+	if (growth) {
+		snake.addSegmentCoords(tailX, tailY);
+		// generateFood
+		generateFood();
 	}
 }
 

@@ -1,5 +1,5 @@
 #include "settings.h"
-#include <list>
+#include <vector>
 #include <utility>
 
 // uselessType to place Snake class inside Grid class
@@ -13,7 +13,7 @@ public:
 	void moveForward(char direction);
 
 	char previousDirection;
-	std::list<std::pair<int, int>> listSegmentCoords;
+	std::vector<std::pair<int, int>> listSegmentCoords;
 };
 
 template <typename uselessType>
@@ -42,26 +42,31 @@ void Snake<uselessType>::moveForward(char direction) {
 		direction = previousDirection;
 
 	//move every snake segment except head
-	for (auto it = listSegmentCoords.end(), next = listSegmentCoords.end()--; it != listSegmentCoords.begin(); it--, next--) {
-		next->first = it->first;
-		next->second = it->second;
-	}
+	if (listSegmentCoords.size() > 1)
+		for (auto r_it = listSegmentCoords.rbegin(), next = std::next(listSegmentCoords.rbegin(), 1); next != listSegmentCoords.rend(); r_it++, next++) {
+
+			r_it->first = next->first;
+			r_it->second = next->second;
+
+		}
 
 	// move head
 	switch (direction) {
 	case UP:
-		listSegmentCoords.begin()->second -= SNAKE_SEGMENT_WIDTH;
+		listSegmentCoords.begin()->second -= 1;
 		break;
 	case DOWN:
-		listSegmentCoords.begin()->second += SNAKE_SEGMENT_WIDTH;
+		listSegmentCoords.begin()->second += 1;
 		break;
 	case RIGHT:
-		listSegmentCoords.begin()->first += SNAKE_SEGMENT_WIDTH;
+		listSegmentCoords.begin()->first += 1;
 		break;
 	case LEFT:
-		listSegmentCoords.begin()->first -= SNAKE_SEGMENT_WIDTH;
+		listSegmentCoords.begin()->first -= 1;
 		break;
 	default:
 		throw std::exception("Wrong moving direction in Snake");
 	}
+
+	previousDirection = direction;
 }
