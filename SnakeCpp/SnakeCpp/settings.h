@@ -35,5 +35,5 @@ enum Difficulty {
 	EASY = 1,
 	MEDIUM,
 	HARD,
-	IMPOSSIPLE
+	IMPOSSIBLE
 };

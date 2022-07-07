@@ -1,9 +1,13 @@
 #include <list>
 #include <utility>
 #include <random>
+#include <iostream>
 
 #include "settings.h"
 #include "Snake.h"
+
+using std::cout;
+using std::endl;
 
 template <int numTiles>
 class GridRow {
@@ -125,8 +129,8 @@ int Grid<numRows, numCols>::pixelsToGridCoord(int pixels) {
 
 template <int numRows, int numCols>
 void Grid<numRows, numCols>::printGridTypes() {
-	for (int i = 0; i < numRows; i++) {
-		for (int j = 0; j < numCols; j++)
+	for (int j = 0; j < numRows; j++) {
+		for (int i = 0; i < numCols; i++)
 			std::cout << grid[i][j] << ' ';
 			std::cout << std::endl;
 	}
@@ -345,28 +349,47 @@ bool Grid<numRows, numCols>::ifFoodConsumed(char direction) {
 template <int numRows, int numCols>
 bool Grid<numRows, numCols>::ifSnakeDies(char direction) {
 
-	auto headCoords = snake.listSegmentCoords.begin();
+	auto headCoords = snake.listSegmentCoords.front();
+	auto tailCoords = snake.listSegmentCoords.back();
 	switch (direction) {
 	case UP:
-		if ( not (ifTileEmpty(headCoords->first, headCoords->second - 1) or ifTileFood(headCoords->first, headCoords->second - 1)))
+		// if snake bumps into itself or into wall, checking if snake tail manages to leave
+		if ( not (ifTileEmpty(headCoords.first, headCoords.second - 1) or ifTileFood(headCoords.first, headCoords.second - 1))
+			and (tailCoords.first != headCoords.first or tailCoords.second != headCoords.second - 1)) {
 			return true;
+			// debug
+			cout << "Snake dies moving UP!" << endl;
+		}
 		break;
 
 	case DOWN:
-		if ( not (ifTileEmpty(headCoords->first, headCoords->second + 1) or ifTileFood(headCoords->first, headCoords->second + 1)))
+		// if snake bumps into itself or into wall, checking if snake tail manages to leave
+		if ( not (ifTileEmpty(headCoords.first, headCoords.second + 1) or ifTileFood(headCoords.first, headCoords.second + 1))
+			and (tailCoords.first != headCoords.first or tailCoords.second != headCoords.second + 1)) {
 			return true;
+			// debug
+			cout << "Snake dies moving DOWN!" << endl;
+		}
 		break;
 
 	case RIGHT:
-
-		if ( not (ifTileEmpty(headCoords->first + 1, headCoords->second) or ifTileFood(headCoords->first + 1, headCoords->second)))
+		// if snake bumps into itself or into wall, checking if snake tail manages to leave
+		if ( not (ifTileEmpty(headCoords.first + 1, headCoords.second) or ifTileFood(headCoords.first + 1, headCoords.second))
+			and (tailCoords.first != headCoords.first + 1 or tailCoords.second != headCoords.second)) {
 			return true;
+			// debug
+			cout << "Snake dies moving RIGHT!" << endl;
+		}
 		break;
 
 	case LEFT:
-
-		if ( not (ifTileEmpty(headCoords->first - 1, headCoords->second) or ifTileFood(headCoords->first - 1, headCoords->second)))
+		// if snake bumps into itself or into wall, checking if snake tail manages to leave
+		if (not (ifTileEmpty(headCoords.first - 1, headCoords.second) or ifTileFood(headCoords.first - 1, headCoords.second))
+			and (tailCoords.first != headCoords.first - 1 or tailCoords.second != headCoords.second)) {
 			return true;
+			// debug
+			cout << "Snake dies moving LEFT!" << endl;
+		}
 		break;
 	}
 
@@ -406,12 +429,17 @@ void Grid<numRows, numCols>::moveSnake() {
 	if (direction == -1)
 		direction = snake.previousDirection;
 
-	if (snake.listSegmentCoords.size() > 2) {
 
-	}
-
+	// if direction correct check death
+	// checking correctness of direction
+	bool correctDir = 1;
+	char prevDir = snake.previousDirection;
+	if (direction == RIGHT and prevDir == LEFT or direction == LEFT and prevDir == RIGHT or direction == UP and prevDir == DOWN
+		or direction == DOWN and prevDir == UP)
+		correctDir = 0;
+	
 	//check death
-	if (ifSnakeDies(direction)) {
+	if (ifSnakeDies(direction) and correctDir) {
 		SDL_Quit();
 		exit(0);
 	}
@@ -434,6 +462,15 @@ void Grid<numRows, numCols>::moveSnake() {
 
 	// move
 	snake.moveForward(direction);
+	//clear grid
+	resetGridTilesTypes();
+
+	//placeSnake
+	placeSnakeOnTiles();
+
+	//place food
+	grid[foodPosition.first][foodPosition.second] = FOOD_TILE;
+
 
 	//if growth, add segment with coords of tail after moving
 	if (growth) {

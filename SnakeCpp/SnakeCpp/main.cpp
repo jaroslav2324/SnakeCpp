@@ -15,14 +15,37 @@ using std::endl;
 
 int main(int argc, char** args) {
 
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
-    {
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
+
         cout << "SDL initialisation failed!" << endl;
         return 1;
     }
 
     const int numRows = (SCREEN_HEIGHT - SNAKE_SEGMENT_WIDTH / 2) / SNAKE_SEGMENT_WIDTH;
     const int numCols = (SCREEN_WIDTH - SNAKE_SEGMENT_WIDTH / 2) / SNAKE_SEGMENT_WIDTH;
+
+
+    /*calculate period of snake moving*/
+    double numSecsInEveryMove;
+
+    // game difficulty
+    int difficulty = IMPOSSIBLE;
+
+    switch(difficulty){
+        case EASY:
+            numSecsInEveryMove = 1;
+            break;
+        case MEDIUM:
+            numSecsInEveryMove = (double)1 / 2;
+            break;
+        case HARD:
+            numSecsInEveryMove = (double)1 / 3;
+            break;
+        case IMPOSSIBLE:
+            numSecsInEveryMove = (double)1 / 4;
+            break;
+    }
+
 
     Grid<numRows, numCols> Grid;
     
@@ -36,20 +59,31 @@ int main(int argc, char** args) {
     renderer = SDL_CreateRenderer(window, -1, 0);
 
 
+    /*add timer*/
+    double prevTime = 0, currentTime = 0, deltaTime = 0, frameTime = 0;
 
-    for (int i = 0; i < 50; i++) {
+    while(true){
 
-        Grid.renderAll(renderer);
-        Grid.renderGrid(renderer);
-        SDL_RenderPresent(renderer);
-        SDL_Delay(1000);
-        Grid.moveSnake();
+        prevTime = currentTime;
+        currentTime = SDL_GetTicks();
+
+        deltaTime = (double)(currentTime - prevTime) / 1000; // in seconds
+
+        frameTime += deltaTime;
+
+        if (frameTime > numSecsInEveryMove) {
+            frameTime -= numSecsInEveryMove;
+
+            Grid.moveSnake();
+            Grid.printGridTypes();
+
+            Grid.renderAll(renderer);
+           // debug grid
+           // Grid.renderGrid(renderer);
+            SDL_RenderPresent(renderer);
+        }  
     }
-
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    //SDL_UpdateWindowSurface(window);
-
-    SDL_Delay(5000);
+    
 
 	return 0;
 }
