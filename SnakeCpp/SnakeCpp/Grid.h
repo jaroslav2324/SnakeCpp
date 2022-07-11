@@ -286,8 +286,8 @@ void Grid<numRows, numCols>::renderSnake(SDL_Renderer* ren) {
 	SDL_SetRenderDrawColor(ren, 0, 200, 0, 255);
 
 	for (auto iterSegment : snake.listSegmentCoords) {
-		x = gridCoordToPixels(iterSegment.first);
-		y = gridCoordToPixels(iterSegment.second);
+		x = gridCoordToPixels(iterSegment.first) - 1;
+		y = gridCoordToPixels(iterSegment.second) - 1;
 		drawBresenhamCircle(ren, x, y, SNAKE_SEGMENT_WIDTH / 2, true);
 	}
 }

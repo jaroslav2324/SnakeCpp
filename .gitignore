@@ -46,3 +46,4 @@
 *.filters
 *.user
 *.vcxproj
+/SnakeCpp/SnakeCpp/button_template.png

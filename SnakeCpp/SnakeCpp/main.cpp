@@ -6,6 +6,7 @@
 #include "settings.h"
 #include "DrawCircle.h"
 #include "Grid.h"
+#include "Menu.h"
 
 
 using std::cout;
@@ -29,7 +30,7 @@ int main(int argc, char** args) {
     double numSecsInEveryMove;
 
     // game difficulty
-    int difficulty = IMPOSSIBLE;
+    int difficulty = EASY;
 
     switch(difficulty){
         case EASY:
@@ -46,6 +47,7 @@ int main(int argc, char** args) {
             break;
     }
 
+    //TODO fix bresenham circle render to avoid rendering one pixel down and right
 
     Grid<numRows, numCols> Grid;
     
@@ -57,6 +59,10 @@ int main(int argc, char** args) {
     window = SDL_CreateWindow(WINDOW_GAME_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     screen_surface = SDL_GetWindowSurface(window);
     renderer = SDL_CreateRenderer(window, -1, 0);
+
+    // test menu 
+    Menu menu(renderer);
+    SDL_RenderPresent(renderer);
 
 
     /*add timer*/
@@ -75,7 +81,6 @@ int main(int argc, char** args) {
             frameTime -= numSecsInEveryMove;
 
             Grid.moveSnake();
-            Grid.printGridTypes();
 
             Grid.renderAll(renderer);
            // debug grid
@@ -84,6 +89,9 @@ int main(int argc, char** args) {
         }  
     }
     
+
+    SDL_Quit();
+    IMG_Quit();
 
 	return 0;
 }

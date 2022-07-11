@@ -3,8 +3,8 @@
 #define FPS 30
 #define WINDOW_GAME_NAME "Snake"
 
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 640
+#define SCREEN_WIDTH 600
+#define SCREEN_HEIGHT 600
 
 #define SNAKE_SEGMENT_WIDTH 50 // in pixels
 
