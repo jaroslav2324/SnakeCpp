@@ -30,7 +30,7 @@ public:
 	void renderAll(SDL_Renderer* ren);
 	
 	//makeGameTurn(move snake)
-	void moveSnake();
+	int moveSnake();
 	
 	// debug
 	void printGridTypes();
@@ -397,7 +397,7 @@ bool Grid<numRows, numCols>::ifSnakeDies(char direction) {
 }
 
 template <int numRows, int numCols>
-void Grid<numRows, numCols>::moveSnake() {
+int Grid<numRows, numCols>::moveSnake() {
 
 	//choose direction
 	SDL_Event event;
@@ -421,14 +421,14 @@ void Grid<numRows, numCols>::moveSnake() {
 		}
 	}
 
-	if (quit){
+	if (quit) {
 		SDL_Quit();
 		exit(0);
 	}
+		
 
 	if (direction == -1)
 		direction = snake.previousDirection;
-
 
 	// if direction correct check death
 	// checking correctness of direction
@@ -439,10 +439,9 @@ void Grid<numRows, numCols>::moveSnake() {
 		correctDir = 0;
 	
 	//check death
-	if (ifSnakeDies(direction) and correctDir) {
-		SDL_Quit();
-		exit(0);
-	}
+	if (ifSnakeDies(direction) and correctDir) 
+		return EXIT_GAME_CODE;
+	
 
 	bool growth = 0;
 	int tailX, tailY;
@@ -478,6 +477,8 @@ void Grid<numRows, numCols>::moveSnake() {
 		// generateFood
 		generateFood();
 	}
+
+	return GAME_STILL_RUNNING_CODE;
 }
 
 

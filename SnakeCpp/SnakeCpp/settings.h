@@ -8,6 +8,8 @@
 
 #define SNAKE_SEGMENT_WIDTH 50 // in pixels
 
+#define EXIT_GAME_CODE -1
+#define GAME_STILL_RUNNING_CODE 1
 
 typedef int TILE_TYPE;
 

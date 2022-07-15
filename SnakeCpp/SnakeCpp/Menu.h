@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 
 #include <SDL.h>
@@ -12,10 +14,13 @@ public:
 	Menu(SDL_Renderer* ren);
 	~Menu() {};
 	void renderMenu(SDL_Renderer* ren);
+
 	void quitGame();
 
+	void checkButtonsPressed(int mouseposX, int mouseposY);
+
 	//if true game is running otherwise menu is shown;
-	bool gameStarted;
+	bool gameRunning ;
 
 private:
 	std::vector<Button> buttonsList;
@@ -24,7 +29,7 @@ private:
 
 Menu::Menu(SDL_Renderer* ren) {
 
-	gameStarted = false;
+	gameRunning = false;
 
 	int screenCenterX = SCREEN_WIDTH / 2;
 	int screenCenterY = SCREEN_HEIGHT / 2;
@@ -40,7 +45,7 @@ Menu::Menu(SDL_Renderer* ren) {
 	int playBtnPosY = screenCenterY - 2 * btnHeight;
 
 	SDL_Rect playBtnPos = {btnPosX,  playBtnPosY, btnWidth, btnHeight};
-	Button playBtn(ren, playBtnPos, "playButton.png", [this]() {gameStarted = true; });
+	Button playBtn(ren, playBtnPos, "playButton.png", [this]() {gameRunning = true; });
 
 	SDL_Rect optionsBtnPos = {btnPosX, screenCenterY - btnHeight / 2, btnWidth, btnHeight};
 	//TODO openOptions
@@ -51,8 +56,10 @@ Menu::Menu(SDL_Renderer* ren) {
 	SDL_Rect quitBtnPos = {btnPosX, quitBtnPosY, btnWidth, btnHeight };
 	Button quitBtn(ren, quitBtnPos, "quitButton.png", [this](){quitGame(); });
 
-	// render buttons
-	renderMenu(ren);
+	// add buttons to buttons list
+	buttonsList.push_back(playBtn);
+	buttonsList.push_back(optionsBtn);
+	buttonsList.push_back(quitBtn);
 }
 
 void Menu::renderMenu(SDL_Renderer* ren) {
@@ -66,4 +73,11 @@ void Menu::quitGame() {
 
 	SDL_Quit();
 	exit(0);
+}
+
+void Menu::checkButtonsPressed(int mousePosX, int mousePosY) {
+
+	for (auto button : buttonsList) {
+		button.onButtonPressed(mousePosX, mousePosY);
+	}
 }

@@ -30,7 +30,7 @@ int main(int argc, char** args) {
     double numSecsInEveryMove;
 
     // game difficulty
-    int difficulty = EASY;
+    int difficulty = MEDIUM;
 
     switch(difficulty){
         case EASY:
@@ -60,33 +60,94 @@ int main(int argc, char** args) {
     screen_surface = SDL_GetWindowSurface(window);
     renderer = SDL_CreateRenderer(window, -1, 0);
 
-    // test menu 
+    // menu 
     Menu menu(renderer);
-    SDL_RenderPresent(renderer);
-
 
     /*add timer*/
     double prevTime = 0, currentTime = 0, deltaTime = 0, frameTime = 0;
 
     while(true){
 
-        prevTime = currentTime;
-        currentTime = SDL_GetTicks();
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
 
-        deltaTime = (double)(currentTime - prevTime) / 1000; // in seconds
+        //menu is opened
+        while (true) {
+            prevTime = currentTime;
+            currentTime = SDL_GetTicks();
 
-        frameTime += deltaTime;
+            deltaTime = (double)(currentTime - prevTime) / 1000; // in seconds
 
-        if (frameTime > numSecsInEveryMove) {
-            frameTime -= numSecsInEveryMove;
+            frameTime += deltaTime;
 
-            Grid.moveSnake();
+            if (frameTime > numSecsInEveryMove) {
+                frameTime -= numSecsInEveryMove;
 
-            Grid.renderAll(renderer);
-           // debug grid
-           // Grid.renderGrid(renderer);
-            SDL_RenderPresent(renderer);
-        }  
+                menu.renderMenu(renderer);
+                SDL_RenderPresent(renderer);
+
+                // handle mouse clicks
+                SDL_Event event;
+
+                bool quit = 0;
+
+                while (SDL_PollEvent(&event)) {
+
+                    if (event.type == SDL_QUIT) {
+                        quit = 1;
+                        break;
+                    }
+
+                    if (event.type == SDL_MOUSEBUTTONDOWN) {
+
+                        if (event.button.button == SDL_BUTTON_LEFT) {
+
+                            int mousePosX, mousePosY;
+
+                            SDL_GetMouseState(&mousePosX, &mousePosY);
+
+                            //check pressing on buttons
+                            menu.checkButtonsPressed(mousePosX, mousePosY);
+                        }
+                    }
+                }
+                // exit
+                if (quit == true) {
+                    SDL_Quit();
+                    exit(0);
+                }
+                    
+
+
+                if (menu.gameRunning == true)
+                    break;
+            }
+        }
+
+        //game is running
+        while (true) {
+            prevTime = currentTime;
+            currentTime = SDL_GetTicks();
+
+            deltaTime = (double)(currentTime - prevTime) / 1000; // in seconds
+
+            frameTime += deltaTime;
+
+            if (frameTime > numSecsInEveryMove) {
+                frameTime -= numSecsInEveryMove;
+
+                int returnCode = Grid.moveSnake();
+
+                Grid.renderAll(renderer);
+
+                SDL_RenderPresent(renderer);
+
+                if (returnCode == EXIT_GAME_CODE) {
+                    menu.gameRunning = false;
+                    break;
+                }
+            }
+        }
     }
     
 
