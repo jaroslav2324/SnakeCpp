@@ -12,20 +12,23 @@ using std::endl;
 
 class Widget {
 public:
-	Widget(SDL_Renderer* ren, const SDL_Rect positionRect,  const std::string imagePath);
+	Widget(SDL_Renderer* ren, const SDL_Rect positionRect,  const std::string imagePath, const std::string onHoverImagePath = "");
 	~Widget();
 
 	void renderWidget(SDL_Renderer* ren);
+
+	bool cursorHoveredOver = false;
 
 protected:
 	// {posX, posY, width, height}
 	SDL_Rect position;
 
 	SDL_Texture* image = nullptr;
+	SDL_Texture* imageOnHover = nullptr;
 };
 
 
-Widget::Widget(SDL_Renderer* ren, const SDL_Rect position, const std::string imagePath) {
+Widget::Widget(SDL_Renderer* ren, const SDL_Rect position, const std::string imagePath, const std::string onHoverImagePath) {
 
 	Widget::position = position;
 
@@ -40,6 +43,18 @@ Widget::Widget(SDL_Renderer* ren, const SDL_Rect position, const std::string ima
 	//convert surface to texture
 	image = SDL_CreateTextureFromSurface(ren, tempSurface);
 
+	// load on hover image and create temporary surface
+	if (onHoverImagePath != "") {
+
+		tempSurface = IMG_Load(onHoverImagePath.c_str());
+
+		if (tempSurface == nullptr) {
+			cout << "No 'on hover' image was loaded for '" << imagePath << "'" << endl;
+		}
+	
+		imageOnHover = SDL_CreateTextureFromSurface(ren, tempSurface);
+	}
+
 	renderWidget(ren);
 }
 
@@ -49,7 +64,9 @@ Widget::~Widget() {
 
 void Widget::renderWidget(SDL_Renderer* ren) {
 
-
-	SDL_RenderCopy(ren, image, NULL, &position);
+	if (cursorHoveredOver and imageOnHover != nullptr)
+		SDL_RenderCopy(ren, imageOnHover, NULL, &position);
+	else
+		SDL_RenderCopy(ren, image, NULL, &position);
 }
 

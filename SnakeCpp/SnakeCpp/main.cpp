@@ -83,8 +83,7 @@ int main(int argc, char** args) {
             if (frameTime > numSecsInEveryMove) {
                 frameTime -= numSecsInEveryMove;
 
-                menu.renderMenu(renderer);
-                SDL_RenderPresent(renderer);
+
 
                 // handle mouse clicks
                 SDL_Event event;
@@ -111,14 +110,22 @@ int main(int argc, char** args) {
                         }
                     }
                 }
+
+                //checking hovering over buttons
+                int mousePosX, mousePosY;
+
+                SDL_GetMouseState(&mousePosX, &mousePosY);
+                menu.checkHoveringOverButtons(mousePosX, mousePosY);
+
+                menu.renderMenu(renderer);
+                SDL_RenderPresent(renderer);
+
                 // exit
                 if (quit == true) {
                     SDL_Quit();
                     exit(0);
                 }
                     
-
-
                 if (menu.gameRunning == true)
                     break;
             }

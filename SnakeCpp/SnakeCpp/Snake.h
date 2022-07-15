@@ -65,7 +65,7 @@ void Snake<uselessType>::moveForward(char direction) {
 		listSegmentCoords.begin()->first -= 1;
 		break;
 	default:
-		throw std::exception("Wrong moving direction in Snake");
+		cout << "Wrong moving direction in Snake";
 	}
 
 	previousDirection = direction;
