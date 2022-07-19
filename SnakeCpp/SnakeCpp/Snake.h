@@ -1,6 +1,10 @@
-#include "settings.h"
+#include <iostream>
 #include <vector>
 #include <utility>
+
+#include "settings.h"
+
+using std::cout;
 
 // uselessType to place Snake class inside Grid class
 template <typename uselessType>
@@ -15,6 +19,8 @@ public:
 	char previousDirection;
 	std::vector<std::pair<int, int>> listSegmentCoords;
 };
+
+
 
 template <typename uselessType>
 Snake<uselessType>::Snake() {

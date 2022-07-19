@@ -7,6 +7,8 @@
 #include "DrawCircle.h"
 #include "Grid.h"
 #include "Menu.h"
+#include "MenuSettings.h"
+#include "Timer.h"
 
 
 using std::cout;
@@ -25,32 +27,7 @@ int main(int argc, char** args) {
     const int numRows = (SCREEN_HEIGHT - SNAKE_SEGMENT_WIDTH / 2) / SNAKE_SEGMENT_WIDTH;
     const int numCols = (SCREEN_WIDTH - SNAKE_SEGMENT_WIDTH / 2) / SNAKE_SEGMENT_WIDTH;
 
-
-    /*calculate period of snake moving*/
-    double numSecsInEveryMove;
-
-    // game difficulty
-    int difficulty = MEDIUM;
-
-    switch(difficulty){
-        case EASY:
-            numSecsInEveryMove = 1;
-            break;
-        case MEDIUM:
-            numSecsInEveryMove = (double)1 / 2;
-            break;
-        case HARD:
-            numSecsInEveryMove = (double)1 / 3;
-            break;
-        case IMPOSSIBLE:
-            numSecsInEveryMove = (double)1 / 4;
-            break;
-    }
-
     //TODO fix bresenham circle render to avoid rendering one pixel down and right
-
-    Grid<numRows, numCols> Grid;
-    
 
     SDL_Surface* screen_surface = NULL;
     SDL_Window* window = NULL;
@@ -61,7 +38,8 @@ int main(int argc, char** args) {
     renderer = SDL_CreateRenderer(window, -1, 0);
 
     // menu 
-    Menu menu(renderer);
+    Menu menu(renderer); 
+    MenuSettings settingsMenu(renderer);
 
     /*add timer*/
     double prevTime = 0, currentTime = 0, deltaTime = 0, frameTime = 0;
@@ -71,19 +49,13 @@ int main(int argc, char** args) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
+        Timer FPS_Timer(1 / FPS);
+
         //menu is opened
         while (true) {
-            prevTime = currentTime;
-            currentTime = SDL_GetTicks();
+            
 
-            deltaTime = (double)(currentTime - prevTime) / 1000; // in seconds
-
-            frameTime += deltaTime;
-
-            if (frameTime > numSecsInEveryMove) {
-                frameTime -= numSecsInEveryMove;
-
-
+            if (FPS_Timer.tickIfNeeded()) {
 
                 // handle mouse clicks
                 SDL_Event event;
@@ -106,18 +78,34 @@ int main(int argc, char** args) {
                             SDL_GetMouseState(&mousePosX, &mousePosY);
 
                             //check pressing on buttons
-                            menu.checkButtonsPressed(mousePosX, mousePosY);
+                            if (settingsMenu.settingsMenuActive)
+                                settingsMenu.checkButtonsPressed(mousePosX, mousePosY);
+                            else
+                                menu.checkButtonsPressed(mousePosX, mousePosY);
                         }
                     }
                 }
+                if (menu.activateSettingsMenu == true) {
+                    menu.activateSettingsMenu = false;
+                    settingsMenu.settingsMenuActive = true;
+                }
+
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+                SDL_RenderClear(renderer);
 
                 //checking hovering over buttons
                 int mousePosX, mousePosY;
-
                 SDL_GetMouseState(&mousePosX, &mousePosY);
-                menu.checkHoveringOverButtons(mousePosX, mousePosY);
 
-                menu.renderMenu(renderer);
+                if (settingsMenu.settingsMenuActive) {
+                    settingsMenu.checkHoveringOverButtons(mousePosX, mousePosY);
+                    settingsMenu.renderMenu(renderer);
+                }
+                else {
+                    menu.checkHoveringOverButtons(mousePosX, mousePosY);
+                    menu.renderMenu(renderer);
+                }
+
                 SDL_RenderPresent(renderer);
 
                 // exit
@@ -131,18 +119,36 @@ int main(int argc, char** args) {
             }
         }
 
+        // game difficulty
+        double numSecsInEveryMove;
+        int difficulty = settingsMenu.getDifficulty();
+
+        /*calculate period of snake moving*/
+        switch (difficulty) {
+        case EASY:
+            numSecsInEveryMove = 1;
+            break;
+        case MEDIUM:
+            numSecsInEveryMove = (double)1 / 2;
+            break;
+        case HARD:
+            numSecsInEveryMove = (double)1 / 3;
+            break;
+        case IMPOSSIBLE:
+            numSecsInEveryMove = (double)1 / 4;
+            break;
+        }
+
+        Timer snakeMovementTimer(numSecsInEveryMove * 1000);
+        Grid<numRows, numCols> Grid;
+
         //game is running
+        Grid.renderAll(renderer);
+
         while (true) {
-            prevTime = currentTime;
-            currentTime = SDL_GetTicks();
 
-            deltaTime = (double)(currentTime - prevTime) / 1000; // in seconds
-
-            frameTime += deltaTime;
-
-            if (frameTime > numSecsInEveryMove) {
-                frameTime -= numSecsInEveryMove;
-
+            if (snakeMovementTimer.tickIfNeeded()) {
+                
                 int returnCode = Grid.moveSnake();
 
                 Grid.renderAll(renderer);
@@ -153,6 +159,11 @@ int main(int argc, char** args) {
                     menu.gameRunning = false;
                     break;
                 }
+            }
+
+            else if (FPS_Timer.tickIfNeeded()) {
+                Grid.renderAll(renderer);
+                SDL_RenderPresent(renderer);
             }
         }
     }

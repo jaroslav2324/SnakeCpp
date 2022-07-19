@@ -1,36 +1,29 @@
 #pragma once
 
-#include <vector>
-
 #include <SDL.h>
 
 #include "settings.h"
-#include "Button.h"
+#include "MenuTemplate.h"
 
 
-class Menu {
+class Menu: public MenuTemplate {
 
 public: 
 	Menu(SDL_Renderer* ren);
 	~Menu() {};
-	void renderMenu(SDL_Renderer* ren);
 
 	void quitGame();
 
-	void checkButtonsPressed(int mouseposX, int mouseposY);
-	void checkHoveringOverButtons(int mousePosX, int mousePosY);
-
 	//if true game is running otherwise menu is shown;
 	bool gameRunning ;
-
-private:
-	std::vector<Button> buttonsList;
+	bool activateSettingsMenu;
 
 };
 
 Menu::Menu(SDL_Renderer* ren) {
 
 	gameRunning = false;
+	activateSettingsMenu = false;
 
 	int screenCenterX = SCREEN_WIDTH / 2;
 	int screenCenterY = SCREEN_HEIGHT / 2;
@@ -50,7 +43,7 @@ Menu::Menu(SDL_Renderer* ren) {
 
 	SDL_Rect optionsBtnPos = {btnPosX, screenCenterY - btnHeight / 2, btnWidth, btnHeight};
 	//TODO openOptions
-	Button optionsBtn(ren, optionsBtnPos, "images/optionsButton.png", "images/optionsButtonHovered.png", [this]() {; });
+	Button optionsBtn(ren, optionsBtnPos, "images/optionsButton.png", "images/optionsButtonHovered.png", [this]() {activateSettingsMenu = true; });
 
 	int quitBtnPosY = screenCenterY + btnHeight;
 
@@ -63,29 +56,8 @@ Menu::Menu(SDL_Renderer* ren) {
 	buttonsList.push_back(quitBtn);
 }
 
-void Menu::renderMenu(SDL_Renderer* ren) {
-
-	for (auto button : buttonsList) {
-		button.renderWidget(ren);
-	}
-}
-
 void Menu::quitGame() {
 
 	SDL_Quit();
 	exit(0);
-}
-
-void Menu::checkButtonsPressed(int mousePosX, int mousePosY) {
-
-	for (auto &button : buttonsList) 
-		button.onButtonPressed(mousePosX, mousePosY);
-	
-}
-
-void Menu::checkHoveringOverButtons(int mousePosX, int mousePosY) {
-
-	for (auto &button : buttonsList)
-		button.onButtonHoveredOver(mousePosX, mousePosY);
-	
 }
