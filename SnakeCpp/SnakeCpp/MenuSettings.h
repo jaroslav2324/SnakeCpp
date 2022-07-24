@@ -19,7 +19,7 @@ public:
 	bool settingsMenuActive = false;
 
 protected:
-	int difficulty = EASY;
+	int difficulty = HARD;
 	Widget* diffifcultyWidget;
 };
 

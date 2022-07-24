@@ -69,6 +69,7 @@ private:
 template <int numRows, int numCols>
 Grid<numRows, numCols>::Grid() {
 
+
 	//fill grid types
 	grid[0] = GridRow<numCols>(true);
 	for (int i = 1; i < numRows - 1; i++)
@@ -95,7 +96,7 @@ template <int numRows, int numCols>
 GridRow<numCols>& Grid<numRows, numCols>::operator[](int numRow) {
 	if (numRow < 0 || numRow >= numRows)
 		throw std::exception("Array index out of bounds in Grid[]");
-	return *grid[numRow];
+	return grid[numRow];
 }
 
 template <int numRows, int numCols>
@@ -112,7 +113,7 @@ void Grid<numRows, numCols>::resetGridTilesTypes() {
 	}
 
 	for (int i = 0; i < numCols; i++)
-		grid[numCols - 1][i] = WALL_TILE;
+		grid[numRows - 1][i] = WALL_TILE;
 }
 
 /*coord to center of pixel rectangle*/
@@ -131,8 +132,8 @@ template <int numRows, int numCols>
 void Grid<numRows, numCols>::printGridTypes() {
 	for (int j = 0; j < numRows; j++) {
 		for (int i = 0; i < numCols; i++)
-			std::cout << grid[i][j] << ' ';
-			std::cout << std::endl;
+			std::cout << grid[j][i] << ' ';
+		std::cout << std::endl;
 	}
 }
 
@@ -262,8 +263,8 @@ void Grid<numRows, numCols>::renderGridTiles(SDL_Renderer* ren) {
 			else
 				SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
 
-			rect.x = gridCoordToPixels(indexRow) - SNAKE_SEGMENT_WIDTH / 2;
-			rect.y = gridCoordToPixels(indexCol) - SNAKE_SEGMENT_WIDTH / 2;
+			rect.x = gridCoordToPixels(indexCol) - SNAKE_SEGMENT_WIDTH / 2;
+			rect.y = gridCoordToPixels(indexRow) - SNAKE_SEGMENT_WIDTH / 2;
 
 			SDL_RenderDrawRect(ren, &rect);
 			SDL_RenderFillRect(ren, &rect);
@@ -286,8 +287,8 @@ void Grid<numRows, numCols>::renderSnake(SDL_Renderer* ren) {
 	SDL_SetRenderDrawColor(ren, 0, 200, 0, 255);
 
 	for (auto iterSegment : snake.listSegmentCoords) {
-		x = gridCoordToPixels(iterSegment.first) - 1;
-		y = gridCoordToPixels(iterSegment.second) - 1;
+		x = gridCoordToPixels(iterSegment.first);
+		y = gridCoordToPixels(iterSegment.second);
 		drawBresenhamCircle(ren, x, y, SNAKE_SEGMENT_WIDTH / 2, true);
 	}
 }
@@ -306,7 +307,7 @@ void Grid<numRows, numCols>::renderFood(SDL_Renderer* ren) {
 template <int numRows, int numCols>
 void Grid<numRows, numCols>::placeSnakeOnTiles() {
 
-	for (auto iterSegment : snake.listSegmentCoords)
+	for (auto &iterSegment : snake.listSegmentCoords)
 		grid[iterSegment.first][iterSegment.second] = SNAKE_TILE;
 
 	auto headCoords = snake.listSegmentCoords.begin();
@@ -461,6 +462,7 @@ int Grid<numRows, numCols>::moveSnake() {
 
 	// move
 	snake.moveForward(direction);
+
 	//clear grid
 	resetGridTilesTypes();
 

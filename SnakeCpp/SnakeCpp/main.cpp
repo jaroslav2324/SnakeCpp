@@ -24,10 +24,8 @@ int main(int argc, char** args) {
         return 1;
     }
 
-    const int numRows = (SCREEN_HEIGHT - SNAKE_SEGMENT_WIDTH / 2) / SNAKE_SEGMENT_WIDTH;
-    const int numCols = (SCREEN_WIDTH - SNAKE_SEGMENT_WIDTH / 2) / SNAKE_SEGMENT_WIDTH;
-
-    //TODO fix bresenham circle render to avoid rendering one pixel down and right
+    const int numRows = SCREEN_HEIGHT / SNAKE_SEGMENT_WIDTH;
+    const int numCols = SCREEN_WIDTH  / SNAKE_SEGMENT_WIDTH;
 
     SDL_Surface* screen_surface = NULL;
     SDL_Window* window = NULL;
