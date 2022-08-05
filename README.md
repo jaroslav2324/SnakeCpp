@@ -1,6 +1,6 @@
 # SnakeCpp project
 
-A quite simple snake game on C++ using SDL and SDL_image.
+A quite simple snake game on C++ using SDL and SDL_image. Libraries are not included in the project.
 
 Move with w, a, s, d.
 
