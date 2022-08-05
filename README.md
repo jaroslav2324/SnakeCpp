@@ -4,7 +4,7 @@ A quite simple snake game on C++ using SDL and SDL_image. Libraries are not incl
 
 Move with w, a, s, d.
 
-Do not change settings to avoid errors during the game:)
+Download game folder and start game with exe file.
 
 Screenshots:
 
